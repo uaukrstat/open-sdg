@@ -1,0 +1,28 @@
+[tabindex]:focus {
+    @include focus;
+}
+body.contrast-high {
+    [tabindex]:focus {
+        @include focusHighContrast;
+    }
+}
+div[tabindex]:focus {
+    @include focusOutlineOnly;
+}
+body.contrast-high div[tabindex]:focus {
+    @include focusOutlineOnlyHighContrast;
+}
+
+#skiplink {
+    width: 100%;
+    padding: 8px 16px;
+    background: #FFDB4D;
+    text-align: left;
+    color: $color-dark;
+    display: block;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 18px;
+    text-decoration: underline !important;
+}

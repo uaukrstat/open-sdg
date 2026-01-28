@@ -1,0 +1,28 @@
+<div class="goal-tiles">
+    <div class="row g-2">
+        {% for goal in page.goals %}
+        <div class="col-4 col-md-2 col-lg-1 goal-tile">
+            <a href="{{ goal.url }}">
+                {% assign hover_icon = goal.icon | replace: '.svg', '_hover.svg' %}
+
+                <img
+                        src="{{ goal.icon }}"
+                        data-default="{{ goal.icon }}"
+                        data-hover="{{ hover_icon }}"
+                        id="goal-{{ goal.number }}"
+                        alt="{{ page.t.general.goal }} {{ goal.number }} - {{ goal.short | escape }}"
+                        class="goal-icon-image goal-icon-image-{{ site.goal_image_extension }}"
+                />
+            </a>
+        </div>
+        {% endfor %}
+
+        {% if page.goals.size == 17 %}
+        <div class="col-4 col-md-2 col-lg-1 goal-tile global-goals-extra-icon">
+             <span>
+                <img src="{{ site.goal_image_base }}/{{ page.language }}/18.svg" id="goal-18" alt="The Global Goals for Sustainable Development" class="goal-icon-image goal-icon-image-{{ site.goal_image_extension }}" />
+            </span>
+        </div>
+        {% endif %}
+    </div>
+</div>

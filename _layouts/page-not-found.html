@@ -1,0 +1,17 @@
+{% include head.html %}
+<div class="tech-work">
+    <div class="tech-work-content">
+        <img class="tech-work-image" src="{{ site.baseurl }}/assets/img/SDG_logo.png" alt="Sustainable Development Goals logo" />
+        <div id="main-content" class="container" role="main">
+            <div class="tech-work-page-status">404</div>
+            <h1 class="tech-work-title">{{ page.t.page_not_found.title }}</h1>
+            <div class="tech-work-description">
+                {{ page.t.page_not_found.description }}
+            </div>
+            <a href="{{ '/' | relative_url }}" class="btn btn-primary btn-download">{{ page.t.page_not_found.toMainPage }}</a>
+        </div>
+    </div>
+</div>
+{% include scripts.html %}
+</body>
+</html>
