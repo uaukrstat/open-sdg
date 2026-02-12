@@ -2,96 +2,298 @@
 {% include header.html %}
 
 <div class="container">
-  {% include components/goal/breadcrumbs.html %}
-  {% if site.create_goals.previous_next_links %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb" style="--bs-breadcrumb-divider: '›';">
+            <li class="breadcrumb-item">
+                <a href="{{ site.baseurl }}/{{ page.language }}/">{{ page.t.general.home | default: 'Головна' }}</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ site.baseurl }}/{{ page.language }}/goals/">{{ page.t.general.goals | default: 'Цілі' }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ page.goal.name }}
+            </li>
+        </ol>
+    </nav>
+    {% if site.create_goals.previous_next_links %}
     {% include components/previous-next-links.html previous_label=page.t.goal.previous next_label=page.t.goal.next %}
-  {% endif %}
+    {% endif %}
 </div>
 
 {% include components/goal/header.html %}
 
-{% assign goal_indicators = page.indicators | where: 'goal_number', page.goal.number | group_by: 'target_number' %}
+{% assign goal_indicators = page.indicators | where: 'goal_number', page.goal.number %}
 {% assign show_progress = false %}
-{% for group in goal_indicators %}
-  {% for indicator in group.items %}
-    {% if indicator.progress_status and indicator.progress_status != '' %}
-      {% assign show_progress = true %}
-    {% endif %}
-  {% endfor %}
+{% for indicator in goal_indicators %}
+{% if indicator.progress_status and indicator.progress_status != '' %}
+{% assign show_progress = true %}
+{% endif %}
 {% endfor %}
 
-<div id="main-content" class="container" role="main">
+<div id="main-content" class="container indicators-container" role="main">
 
-  {% include components/goal/goal-content.html content=content %}
+    {% include components/goal/goal-content.html content=content %}
 
-  <div class="container g-0 {% if show_progress %}goal-showing-progress{% endif %}">
-    <div class="row align-items-end">
-      <div class="col">
-        <h2 class="goal-page-heading">{{ page.t.general.targets_and_indicators }}</h2>
-      </div>
-      {% if show_progress %}
-      <div class="col-lg-2 d-none d-lg-block progress-column-header">
-        <span aria-hidden="true">{{ site.progress_status.status_help | t | default: page.t.status.progress_help }}</span>
-      </div>
-      {% endif %}
+    <div class="container g-0 {% if show_progress %}goal-showing-progress{% endif %}">
+
+        <div class="row align-items-end">
+            <div class="col">
+                <h2 class="goal-page-heading">{{ page.t.general.targets_and_indicators }}</h2>
+            </div>
+            {% if show_progress %}
+            <div class="col-lg-2 d-none d-lg-block progress-column-header">
+                <span aria-hidden="true">{{ site.progress_status.status_help | t | default: page.t.status.progress_help }}</span>
+            </div>
+            {% endif %}
+        </div>
+        <hr class="goal-page-column-header-rule">
+
+        <ul class="nav nav-tabs edition-tabs" role="tablist">
+            <li role="presentation">
+                <a href="#current-edition" class="active" aria-controls="current-edition" role="tab" data-bs-toggle="tab">
+                    <div class="tab-content-wrapper">
+                        <span class="radio-dot"></span>
+                        <div class="text-group">
+                            <span class="tab-title">
+                                {{ page.t.general.tab_title }}
+                            </span>
+                            <span class="badge-edition badge-current">
+                                 {{ page.t.general.badge_current_short | default: 'Чинна' }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li role="presentation">
+                <a href="#archive-edition" aria-controls="archive-edition" role="tab" data-bs-toggle="tab">
+                    <div class="tab-content-wrapper">
+                        <span class="radio-dot"></span>
+                        <div class="text-group">
+                            <span class="tab-title">
+                                {{ page.t.general.archive_tab_title }}
+                            </span>
+                            <span class="badge-edition badge-archive">
+                                {{ page.t.general.badge_previous_short | default: 'Попередня' }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content edition-tabs-content border-0 p-0">
+            <div class="tab-pane active" id="current-edition" role="tabpanel">
+                <div style="margin-top: 20px;"></div>
+
+                {% assign last_target = "" %}
+
+                {% for ind in goal_indicators %}
+                {% if ind.slug contains "-a" %}{% continue %}{% endif %}
+
+                {% if ind.target_number != last_target %}
+
+                {% if last_target != "" %}{% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}{% endif %}
+
+                {% assign target = ind.target_number | sdg_lookup %}
+                <div class="row align-items-start goal-target">
+                    <div class="col-auto"><h3><span class="visually-hidden">{{ page.t.general.target }}</span>{{ target.number }}</h3></div>
+                    <div class="col">{{ target.name }}</div>
+                </div>
+                {% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}
+                {% assign last_target = ind.target_number %}
+                {% endif %}
+
+                <div class="indicator-item">
+                    <div class="row align-items-start goal-indicator">
+                        <div class="col-auto">
+                            <h4>
+                                <span class="visually-hidden">{{ page.t.general.indicator }}</span>
+                                {{ ind.number }}
+                            </h4>
+                        </div>
+                        <div class="col">{{ ind.name }}</div>
+                        {% include components/indicator/tags.html tags=ind.tags reporting_status=true indicator=ind %}
+                    </div>
+
+                    <button class="btn btn-toggle-collapse collapsed"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse-{{ ind.slug }}"
+                            aria-expanded="false"
+                            aria-controls="collapse-{{ ind.slug }}"
+                            onclick="loadChart('{{ ind.url }}', '{{ ind.slug }}')"
+                            data-text-show="{{ page.t.general.show_chart }}"
+                            data-text-hide="{{ page.t.general.hide_chart }}">
+                        {{ page.t.general.show_chart | default: 'Показати' }}
+                    </button>
+
+                    <div class="collapse" id="collapse-{{ ind.slug }}">
+                        <div class="card card-body mt-2">
+                            <div id="loader-{{ ind.slug }}" class="text-center">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p>{{ page.t.general.loading_chart | default: 'Завантаження графіка...' }}</p>
+                            </div>
+                            <div id="chart-target-{{ ind.slug }}"></div>
+                        </div>
+                        <a class="view-indicator-details" href="{{ ind.url }}">
+                            {{ page.t.general.view_indicator_details | default: 'Переглянути деталі індикатора' }}
+                        </a>
+                    </div>
+                </div>
+                {% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}
+                {% endfor %}
+            </div>
+
+            <div class="tab-pane" id="archive-edition" role="tabpanel">
+                <div style="margin-top: 20px;"></div>
+
+                {% assign last_archive_target = "" %}
+                {% assign has_archive_data = false %}
+
+                {% for ind in goal_indicators %}
+                {% unless ind.slug contains "-a" %}{% continue %}{% endunless %}
+
+                {% assign has_archive_data = true %}
+
+                {% if ind.target_number != last_archive_target %}
+
+                {% if last_archive_target != "" %}{% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}{% endif %}
+
+                {% assign archive_key = ind.target_number | replace: ".", "-" | append: "-a" %}
+
+                <div class="row align-items-start goal-target">
+                    <div class="col-auto"><h3><span class="visually-hidden">{{ page.t.general.target }}</span>{{ ind.target_number }}</h3></div>
+                    <div class="col">
+                        {{ site.data.translations[page.language].archive_targets[archive_key] | default: "Архівне завдання" }}
+                    </div>
+                </div>
+
+                {% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}
+
+                {% assign last_archive_target = ind.target_number %}
+                {% endif %}
+
+                <div class="indicator-item">
+                    <div class="row align-items-start goal-indicator">
+                        <div class="col-auto">
+                            <h4>
+                                <span class="visually-hidden">{{ page.t.general.indicator }}</span>
+                                {{ ind.number | replace: ".a", "" }}
+                            </h4>
+                        </div>
+                        <div class="col">{{ ind.name }}</div>
+                        {% include components/indicator/tags.html tags=ind.tags reporting_status=true indicator=ind %}
+                    </div>
+                    <button class="btn btn-toggle-collapse collapsed"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse-{{ ind.slug }}"
+                            aria-expanded="false"
+                            aria-controls="collapse-{{ ind.slug }}"
+                            onclick="loadChart('{{ ind.url }}', '{{ ind.slug }}')"
+                            data-text-show="{{ page.t.general.show_chart }}"
+                            data-text-hide="{{ page.t.general.hide_chart }}">
+                        {{ page.t.general.show_chart | default: 'Показати' }}
+                    </button>
+
+                    <div class="collapse" id="collapse-{{ ind.slug }}">
+                        <div class="card card-body mt-2">
+                            <div id="loader-{{ ind.slug }}" class="text-center">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p>{{ page.t.general.loading_chart | default: 'Завантаження графіка...' }}</p>
+                            </div>
+                            <div id="chart-target-{{ ind.slug }}"></div>
+                        </div>
+                        <a class="view-indicator-details" href="{{ ind.url }}">
+                            {{ page.t.general.view_indicator_details | default: 'Переглянути деталі індикатора' }}
+                        </a>
+                    </div>
+                </div>
+                {% unless forloop.last %}<hr class="goal-page-target-rule">{% endunless %}
+                {% endfor %}
+            </div>
+        </div>
+
     </div>
-    <hr class="goal-page-column-header-rule">
-    {% for group in goal_indicators %}
-      {% assign target = group.name | sdg_lookup %}
-      <div class="row align-items-start goal-target">
-          <div class="col-auto goal-page-target-number">
-            <h3 class="goal-target">
-              <span class="target-number"><span class="visually-hidden">{{ page.t.general.target }}</span> {{ target.number }}</span>
-            </h3>
-          </div>
-          <div class="col goal-page-target-name">
-            <span class="target-name">{{ target.name }}</span>
-          </div>
-          {% if show_progress %}
-          <div class="col-lg-2 d-none d-lg-block"></div>
-          {% endif %}
-      </div>
-        {% for indicator in group.items %}
-          {% assign tag_classes = "" | split: "," %}
-          {% if indicator.tags %}
-            {% for tag in indicator.tags %}
-              {% assign tag_slug = "indicator-" | append: tag | slugify %}
-              {% assign tag_classes = tag_classes | push: tag_slug %}
-            {% endfor %}
-          {% endif %}
-          {% assign tag_classes = tag_classes | join: " " %}
-          {% if indicator.progress_status and indicator.progress_status != '' %}
-            {% assign indicator_has_progress = true %}
-          {% endif %}
-
-          <div class="row align-items-start goal-indicator">
-          
-            <div class="col-auto goal-page-indicator-number">
-              <h4>
-                <span class="indicator-number"><span class="visually-hidden">{{ page.t.general.indicator }}</span> {{ indicator.number }}</span>
-              </h4>
-            </div>
-            <div class="col goal-page-indicator-name">
-              {% if indicator.placeholder and indicator.placeholder != '' %}
-              <span class="indicator-name">{{ indicator.placeholder }}</span>
-              {% else %}
-              <span class="indicator-name"><a href="{{ indicator.url }}">{{ indicator.name }}</a></span>
-              {% include components/indicator/tags.html tags=indicator.tags reporting_status=true indicator=indicator %}
-            </div>
-            {% if indicator_has_progress %}
-            <div class="col-lg-2 goal-page-indicator-progress">
-              <span class="visually-hidden">{{ site.progress_status.status_heading | t }}</span>
-              {% include components/progress/progress-status.html indicator=indicator %}
-            </div>
-            {% endif %}
-            {% endif %}
-          </div>
-        {% endfor %}
-        <hr class="goal-page-target-rule" />
-    {% endfor %}
-  </div>
-  {% include back-to-top.html %}
+    {% include back-to-top.html %}
 </div>
 
-
 {% include footer.html %}
+
+<script>
+  function loadChart(url, slug) {
+    const targetDiv = document.getElementById('chart-target-' + slug);
+    const loader = document.getElementById('loader-' + slug);
+
+    if (targetDiv.innerHTML.trim() !== "") return;
+
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.width = "100%";
+    iframe.height = "500px";
+    iframe.style.border = "none";
+    iframe.style.visibility = "hidden";
+
+    iframe.onload = function() {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const chart = iframeDoc.getElementById('selectionsChart');
+
+        if (chart) {
+          Array.from(iframeDoc.body.children).forEach(child => {
+            child.style.display = 'none';
+          });
+
+          let current = chart;
+          while (current && current !== iframeDoc.body) {
+            current.style.display = 'block';
+            current = current.parentElement;
+          }
+
+          const style = iframeDoc.createElement('style');
+          style.textContent = `
+            .plot-container { padding: 0 !important; }
+            #chart-canvas { margin-top: 0 !important; }
+            #main-content { margin: 0 !important; }
+            #main-content #indicatorData { margin-top: 0 !important; }
+            #legend { margin-bottom: 0 !important; }
+            #selectionsChart figure { margin-bottom: 0 !important; }
+            .tab-content.data-view { border: none !important; padding: 0 !important; }
+        `;
+          iframeDoc.head.appendChild(style);
+
+          const toHideInside = iframeDoc.querySelectorAll('#chart-heading, #selectionChartFooter, #chartSelectionDownload, .breadcrumb, header, footer, .nav-tabs, #indicator-sidebar, #metadataTabs, a[href="#top"]');
+          toHideInside.forEach(el => el.style.display = 'none');
+
+          iframeDoc.body.style.overflow = 'hidden';
+          loader.style.display = 'none';
+          iframe.style.visibility = "visible";
+        } else {
+          loader.style.display = 'none';
+          targetDiv.innerHTML = '';
+        }
+
+      } catch (e) {
+        console.warn("CORS error: iframe", e);
+        loader.innerHTML = "Помилка доступу до графіка";
+      }
+    };
+
+    targetDiv.appendChild(iframe);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const collapses = document.querySelectorAll('.collapse');
+
+    collapses.forEach(collapseEl => {
+      const button = document.querySelector(`[data-bs-target="#${collapseEl.id}"]`);
+      if (!button) return;
+
+      collapseEl.addEventListener('show.bs.collapse', function () {
+        button.textContent = button.getAttribute('data-text-hide');
+      });
+
+      collapseEl.addEventListener('hide.bs.collapse', function () {
+        button.textContent = button.getAttribute('data-text-show');
+      });
+    });
+  });
+</script>

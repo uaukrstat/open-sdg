@@ -1,7 +1,7 @@
 <div class="goal-tiles">
     <div class="row g-2">
         {% for goal in page.goals %}
-        <div class="col-4 col-md-2 col-lg-1 goal-tile">
+        <div class="col-4 col-md-2 goal-tile">
             <a href="{{ goal.url }}">
                 {% assign hover_icon = goal.icon | replace: '.svg', '_hover.svg' %}
 
@@ -18,7 +18,7 @@
         {% endfor %}
 
         {% if page.goals.size == 17 %}
-        <div class="col-4 col-md-2 col-lg-1 goal-tile global-goals-extra-icon">
+        <div class="col-4 col-md-2 goal-tile global-goals-extra-icon">
              <span>
                 <img src="{{ site.goal_image_base }}/{{ page.language }}/18.svg" id="goal-18" alt="The Global Goals for Sustainable Development" class="goal-icon-image goal-icon-image-{{ site.goal_image_extension }}" />
             </span>

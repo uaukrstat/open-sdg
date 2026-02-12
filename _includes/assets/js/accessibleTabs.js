@@ -4,11 +4,11 @@ $(document).ready(function() {
         var tabs = tabsList.find('li > button');
         var panes = tabsList.parent().find('.tab-pane');
 
-        panes.attr({
-            'role': 'tabpanel',
-            'aria-hidden': 'true',
-            'tabindex': '0',
-        }).hide();
+        // panes.attr({
+        //     'role': 'tabpanel',
+        //     'aria-hidden': 'true',
+        //     'tabindex': '0',
+        // }).hide();
 
         tabsList.attr({
             'role': 'tablist',
@@ -40,13 +40,13 @@ $(document).ready(function() {
                     })
                     .removeClass('active');
 
-                panes.filter(':visible').attr({
-                    'aria-hidden': 'true',
-                }).hide();
+                // panes.filter(':visible').attr({
+                //     'aria-hidden': 'true',
+                // }).hide();
 
-                pane.attr({
-                    'aria-hidden': 'false',
-                }).show();
+                // pane.attr({
+                //     'aria-hidden': 'false',
+                // }).show();
 
                 tab.attr({
                     'aria-selected': 'true',
