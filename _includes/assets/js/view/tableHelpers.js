@@ -175,16 +175,16 @@ function createTable(table, indicatorId, el, isProxy, observationAttributesTable
 
         var table_head = '<thead><tr>';
 
-        var getHeading = function (heading, index) {
+        var getHeading = function (text) {
             var arrows = '<span class="sort"><i class="fa fa-sort"></i><i class="fa fa-sort-down"></i><i class="fa fa-sort-up"></i></span>';
-            var button = '<span tabindex="0" role="button" aria-describedby="column-sort-info">' + translations.t(heading) + '</span>';
+            var button = '<span tabindex="0" role="button" aria-describedby="column-sort-info">' + text + '</span>';
             return button + arrows;
         };
 
       table.headings.forEach(function (heading, index) {
         let translatedHeading = translations.t(heading);
 
-        if (table.headings.length === 2 && index === 1) {
+        if (table.headings.length && index === 1) {
           const genericTerms = ['Value', 'Значення', 'Value', 'undefined', heading];
 
           if (!translatedHeading || genericTerms.includes(translatedHeading) || genericTerms.includes(heading)) {
@@ -192,7 +192,8 @@ function createTable(table, indicatorId, el, isProxy, observationAttributesTable
           }
         }
 
-        const title = getHeading(translatedHeading, index);
+        const finalTitleText = translatedHeading || heading;
+        const title = getHeading(finalTitleText);
 
         if (title) {
           table_head += '<th' + (!index ? '' : ' class="table-value"') + ' scope="col">' + title + '</th>';

@@ -56,12 +56,67 @@ var indicatorSearch = function () {
         builder.metadataWhitelist.push('unstemmed');
     }
 
+    var resultsPerPage = 10;
+    var allResultItems = [];
+
+    function renderPaginatedResults(page) {
+        var start = (page - 1) * resultsPerPage;
+        var end = start + resultsPerPage;
+        var totalPages = Math.ceil(allResultItems.length / resultsPerPage);
+        var paginatedItems = allResultItems.slice(start, end);
+
+        var template = _.template($("script.results-template").html());
+        $('div.results').html(template({
+            searchResults: paginatedItems,
+            resultsCount: allResultItems.length,
+            currentPage: page,
+            totalPages: totalPages
+        }));
+
+        window.scrollTo(0, 0);
+    }
+
+    var searchInput = document.getElementById('indicator_search-bar-on-page');
+    if (searchInput) {
+        var clearBtn = document.createElement('button');
+        clearBtn.innerHTML = '×';
+        clearBtn.className = 'clear-search';
+        clearBtn.setAttribute('aria-label', 'Очистити поле пошуку');
+        searchInput.parentNode.style.position = 'relative';
+        searchInput.parentNode.appendChild(clearBtn);
+
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var val = searchInput.value.trim();
+                if (val.length > 0) {
+                    var searchUrl = window.location.pathname + '?q=' + encodeURIComponent(val);
+                    window.location.href = searchUrl;
+                }
+            }
+        });
+
+        if (searchInput.value) clearBtn.style.display = 'block';
+
+        clearBtn.onclick = function(e) {
+            e.preventDefault();
+            searchInput.value = '';
+            this.style.display = 'none';
+            searchInput.focus();
+        };
+
+        searchInput.oninput = function() {
+            clearBtn.style.display = (this.value) ? 'block' : 'none';
+        };
+    }
+
     var urlParams = new URLSearchParams(window.location.search);
     var searchTerms = sanitizeInput(urlParams.get('q'));
 
     if (searchTerms !== null) {
         document.getElementById('search-bar-on-page').value = searchTerms;
         document.getElementById('search-term').innerHTML = searchTerms;
+        document.getElementById('indicator_search-bar-on-page').value = searchTerms;
 
         var searchTermsToUse = searchTerms;
 
@@ -231,15 +286,15 @@ var indicatorSearch = function () {
             resultItems.push(doc);
         });
 
-        console.log({
-            searchTerms: searchTerms,
-            searchTermsToUse: searchTermsToUse,
-            lang: lang,
-            useLunr: useLunr,
-            resultItems: resultItems
-        });
-
+        allResultItems = resultItems;
         $('.loader').hide();
+        renderPaginatedResults(1);
+
+        $(document).on('click', '.pagination-trigger', function(e) {
+            e.preventDefault();
+            var targetPage = $(this).data('page');
+            renderPaginatedResults(targetPage);
+        });
 
         var template = _.template($("script.results-template").html());
         $('div.results').html(template({

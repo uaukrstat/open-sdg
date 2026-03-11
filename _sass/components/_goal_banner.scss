@@ -1,6 +1,6 @@
 .goal-banner {
     .goal-icon-image {
-        max-width: 100%;
+        max-width: 80px;
     }
     h1 {
         margin-top: 12px;
@@ -13,8 +13,14 @@
             }
         }
     }
+    .lead-copy {
+        font-size: 19px;
+        font-weight: 600;
+        line-height: 27px;
+    }
     &-title {
-        margin-top: 0!important;
+        margin-top: 16px;
+        margin-bottom: 16px;
         font-size: 36px;
         font-style: normal;
         font-weight: 700;
@@ -28,4 +34,12 @@ body.contrast-high {
             background-color: black !important;
         }
     }
+}
+
+.indicator-sidebar {
+  padding-right: 32px;
+
+  @media (max-width: 768px) {
+    padding-right: 0;
+  }
 }

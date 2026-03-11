@@ -1,33 +1,48 @@
 {% include head.html %}
 {% include header.html %}
 <script type="text/template" class="results-template">
-  <% if(resultsCount) { %>
+    <% if(resultsCount) { %>
     <p>{{ page.t.search.results_found }}: <%= resultsCount %></p>
+
     <% _.each(searchResults, function(result){ %>
-      <div class="row search-result">
-        <div class="col col-xs-12">
-          <div class="item">
-              <a href="<%= result.url %>">
-                  <h2 class="title"><%= result.title %></h2>
-              </a>
-          </div>
+    <div class="row search-result">
+        <div class="col col-md-8">
+            <div class="item">
+                <a href="<%= result.url %>">
+                    <h2 class="title"><%= result.title %></h2>
+                </a>
+            </div>
         </div>
-      </div>
+    </div>
     <% }); %>
 
-  <% } else { %>
-    <p>
-      {{ page.t.search.no_results }}
-      <% if(didYouMean) { %>
-      - {{ page.t.search.did_you_mean }}:
-        <% _.each(didYouMean, function(searchTerm){ %>
-        <a href="{{ page.baseurl }}search/?q=<%= searchTerm %>"><%= searchTerm %></a>
-        <% }); %>
-      <% } %>
-      <br><br>
-      {{ page.t.search.adjust_your_search }}
-    </p>
-  <% } %>
+    <% if(totalPages > 1) { %>
+    <div class="custom-pagination mt-4">
+
+        <% if(currentPage > 1) { %>
+        <div class="prev-page mb-3">
+            <a href="#" class="pagination-trigger" data-page="<%= currentPage - 1 %>">
+                <span class="arrow left"></span> {{ page.t.search.previous_page }}
+            </a>
+            <div class="page-info"><%= currentPage - 1 %> {{ page.t.search.page_of }} <%= totalPages %></div>
+        </div>
+        <% } %>
+
+        <% if(currentPage < totalPages) { %>
+        <div class="next-page">
+            <a href="#" class="pagination-trigger" data-page="<%= currentPage + 1 %>">
+                <span class="arrow"></span> {{ page.t.search.next_page }}
+            </a>
+            <div class="page-info"><%= currentPage + 1 %> {{ page.t.search.page_of }} <%= totalPages %></div>
+        </div>
+        <% } %>
+
+    </div>
+    <% } %>
+
+    <% } else { %>
+    <p class="no-results-text">{{ page.t.search.no_results }}</p>
+    <% } %>
 </script>
 <script>
 opensdg.searchItems = {{ site.data.search_items[page.language] | jsonify }};
@@ -50,7 +65,7 @@ opensdg.searchIndexExtraFields = [];
   {% include components/page/breadcrumbs.html %}
 </div>
 <div id="main-content" class="container" role="main">
-  <h1>{{ page.t.search.search_results_for }} '<span id="search-term"></span>'</h1>
+  <h1 class="mb-32">{{ page.t.search.search_results_for }} «<span id="search-term"></span>»</h1>
   {% include search.html id="search-bar-on-page" not_in_menu=true %}
   {% include components/loading.html %}
   <div id="search-results" class="results"></div>
