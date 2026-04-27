@@ -194,17 +194,25 @@ function createTable(table, indicatorId, el, isProxy, observationAttributesTable
                     translatedHeading = (window.location.pathname.indexOf('/uk/') !== -1) ? 'Україна' : 'Ukraine';
                 }
 
-                if (window.location.pathname.includes('6-1-1')) {
+                if (window.location.pathname.includes('6-1-1') && !window.location.pathname.includes('16-1-1')) {
                     const [firstHeading, ...restHeadings] = translatedHeading.split(',');
                     if (firstHeading && (firstHeading === 'Ukraine' || firstHeading === 'Україна')) {
                         translatedHeading = `${restHeadings.join(', ')}, ${firstHeading}`;
                     }
                 }
 
-                if (window.location.pathname.includes('6-2-1')) {
+                if (window.location.pathname.includes('6-2-1') && !window.location.pathname.includes('16-2-1')) {
                     translatedHeading = (window.location.pathname.indexOf('/uk/') !== -1) ? 'вікові групи' : 'age groups';
                 }
 
+                if (window.location.pathname.includes('16-2-1')) {
+                    const badgeType = document.querySelector('.badge-edition');
+                    const isArchive = badgeType && badgeType.classList.contains('badge-archive');
+
+                    if (isArchive) {
+                        translatedHeading = (window.location.pathname.indexOf('/uk/') !== -1) ? 'Потерпіло від кримінальних правопорушень (рівень на 100 тис. населення)' : 'Victims of criminal offenses (per 100 thousand population)';
+                    }
+                }
             }
 
             const finalTitleText = translatedHeading || heading;
