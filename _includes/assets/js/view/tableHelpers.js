@@ -13,40 +13,143 @@ function alterTableConfig(config, info) {
  * @param {Object} tableData
  * @return {String}
  */
-function toCsv(tableData, selectedSeries, selectedUnit) {
-    var lines = [],
-        dataHeadings = _.map(tableData.headings, function (heading) {
-            return '"' + translations.t(heading) + '"';
-        }),
-        metaHeadings = [];
-
-    if (selectedSeries) {
-        metaHeadings.push(translations.indicator.series);
+function formatCsvValue(value, isValueColumn, allowEmpty) {
+    if (
+        allowEmpty &&
+        (value === null ||
+            typeof value === 'undefined' ||
+            String(value).trim() === '')
+    ) {
+        return '""';
     }
-    if (selectedUnit) {
-        metaHeadings.push(translations.indicator.unit);
+
+    if (
+        value === null ||
+        typeof value === 'undefined' ||
+        String(value).trim() === ''
+    ) {
+        return '"NA"';
     }
-    var allHeadings = dataHeadings.concat(metaHeadings);
 
-    lines.push(allHeadings.join(','));
+    var str = String(value).trim();
+    var lang = document.documentElement.lang || 'uk';
 
-    _.each(tableData.data, function (dataValues) {
-        var line = [];
+    if (/^-?\d+\.\d+$/.test(str) && lang === 'uk') {
+        str = str.replace('.', ',');
+    }
 
-        _.each(dataHeadings, function (heading, index) {
-            line.push(dataValues[index]);
-        });
-        if (selectedSeries) {
-            line.push(JSON.stringify(translations.t(selectedSeries)));
+    return '"' + str.replace(/"/g, '""') + '"';
+}
+
+function getMetadataCsvRows(selector, columnCount) {
+    var rows = [];
+    var $table = $(selector);
+
+    if (!$table.length) {
+        return rows;
+    }
+
+    $table.find('tbody tr').each(function () {
+        var key = $(this).find('th').text().trim();
+        var value = $(this).find('td').text().trim().replace(/\s+/g, ' ');
+
+        if (key || value) {
+            var cells = new Array(columnCount).fill('');
+
+            cells[columnCount - 1] = key + ': ' + value;
+
+            rows.push(cells.map(function (cell, index) {
+                return formatCsvValue(
+                    cell,
+                    false,
+                    index !== columnCount - 1
+                );
+            }).join(';'));
         }
-        if (selectedUnit) {
-            line.push(JSON.stringify(translations.t(selectedUnit)));
-        }
-
-        lines.push(line.join(','));
     });
 
-    return lines.join('\n');
+    return rows;
+}
+
+function toCsv(tableData, selectedSeries, selectedUnit) {
+    var delimiter = ';';
+    var lines = [];
+    var lang = document.documentElement.lang || 'uk';
+    var $renderedTable = $('#selectionsTable table');
+
+    if ($renderedTable.length) {
+        var renderedHeadings = [];
+
+        $renderedTable.find('thead th').each(function () {
+            var headingText = $(this).find('span[role="button"]').first().text().trim();
+
+            if (!headingText) {
+                headingText = $(this).text().replace(/\s+/g, ' ').trim();
+            }
+
+            renderedHeadings.push(formatCsvValue(headingText, false));
+        });
+
+        var metaHeadings = [];
+
+        if (selectedSeries) {
+            metaHeadings.push(formatCsvValue(translations.indicator.series, false));
+        }
+
+        if (selectedUnit) {
+            metaHeadings.push(formatCsvValue(translations.indicator.unit, false));
+        }
+
+        var noteHeading = lang === 'uk' ? 'Національні метадані' : 'National Metadata';
+        var totalColumnCount = renderedHeadings.length + metaHeadings.length + 1;
+
+        lines.push(
+            renderedHeadings
+                .concat(metaHeadings)
+                .concat([formatCsvValue(noteHeading, false)])
+                .join(delimiter)
+        );
+
+        $renderedTable.find('tbody tr').each(function () {
+            var line = [];
+
+            $(this).find('th, td').each(function () {
+                var value = $(this).text().trim();
+
+                if (value === '-') {
+                    value = '';
+                }
+
+                line.push(formatCsvValue(value, false));
+            });
+
+            if (selectedSeries) {
+                line.push(formatCsvValue(translations.t(selectedSeries), false));
+            }
+
+            if (selectedUnit) {
+                line.push(formatCsvValue(translations.t(selectedUnit), false));
+            }
+
+            line.push(formatCsvValue('', false, true));
+
+            lines.push(line.join(delimiter));
+        });
+
+        var metadataRows = getMetadataCsvRows(
+            '#national .metadata-content',
+            totalColumnCount
+        );
+
+        if (metadataRows.length) {
+            lines.push('');
+            lines = lines.concat(metadataRows);
+        }
+
+        return '\ufeff' + lines.join('\n');
+    }
+
+    return '\ufeff' + lines.join('\n');
 }
 
 /**
